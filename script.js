@@ -26,6 +26,7 @@ class Board {
     }
     remove(pool) {
         let poolIndex = this.pools.indexOf(pool);
+        console.log("removing ", this.pools[poolIndex])
         /*if (this.pools.length == 1) {
             this.pools[0].entries.map(entry => {
                 console.log(entry)
@@ -91,9 +92,25 @@ class Board {
         for (let i = 1; i <= 9; i++) {
             window.localStorage.removeItem("pool" + i)
         }
-        this.pools.map(pool => pool.save())
+        let encodedString = "";
+        this.pools.map(pool => {
+            encodedString += pool.save() + "=";
+        })
+        encodedString = encodedString.slice(0, -1); // remove the last unecessary delimiter.
+        return encodedString
     }
-    loadPools() {
+    loadPools(encodedString) {
+        if (encodedString) {
+            this.clearPools()
+            let encodedPools = encodedString.split("=")
+            encodedPools.map(poolString => {
+                console.log(poolString)
+                board.add(Pool.load(poolString))
+            })
+            this.remove(this.pools[0])
+            //encodedString.
+            return
+        }
         for (let i = 1; i <= 9; i++) {
             let loadedPool = Pool.load(i)
             console.log(typeof loadedPool)
@@ -102,8 +119,8 @@ class Board {
         }
     }
     clearPools() {
-        this.pools.map(pool => this.remove(pool))
-        this.pools[0] = new Pool();
+        this.pools.slice().map(pool => this.remove(pool))
+        //this.add(new Pool())
         this.showPool(this.pools[0])
     }
 }
@@ -112,9 +129,11 @@ class Pool {
     constructor(entries = [], removeAfterDraw = false) {
         this.isRemoveAfterDraw = removeAfterDraw;
         this.lastDrawn = null;
+        
         this.parent = null;
         this.DOMElement = document.createElement("ul");
         this.DOMElement.id = "entryList"
+        this.tabElement = null
 
         this.entries = []
         entries.map(entry => this.add(entry));
@@ -192,8 +211,14 @@ class Pool {
         window.localStorage.setItem("pool" + (poolIndex + 1), encodedString);
         return encodedString;
     }
-    static load(index) {
-        let encodedString = window.localStorage.getItem("pool" + index);
+    static load(input) {
+        let encodedString
+        if (typeof input == "string") {
+            encodedString = input
+        } else if (typeof input == "number") {
+            let index = input
+            encodedString = window.localStorage.getItem("pool" + index);
+        }
         if (!encodedString) return;
         let entryStrings = encodedString.split("|");
         let decodedEntries = entryStrings.map(item => {
