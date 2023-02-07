@@ -155,11 +155,11 @@ class Pool {
             if (currentEntryNumber >= randomEntryNumber) {
                 console.log(currentEntryNumber, randomEntryNumber, maxEntryNumber)
                 let drawnEntry = this.entries[i];
+                if (drawnEntry.occurences <= 0) return
                 if (this.isRemoveAfterDraw) {
                     drawnEntry.occurences--;
                 }
                 this.save()
-                if (drawnEntry.label == "") console.log("なんか？")
                 return drawnEntry;
             }
         }
@@ -232,7 +232,7 @@ class Pool {
 class Entry {
     constructor(label = "", occurences = 0) {
         this.label = label;
-        this._occurences = occurences;
+        this._occurences = Math.max(0,occurences);
         this.parent = null;
         this.DOMElement = document.createElement("li");
         let column1 = document.createElement("td");
@@ -265,7 +265,7 @@ class Entry {
         return this._occurences;
     }
     set occurences(value) {
-        this._occurences = value;
-        this.occurenceInput.value = value;
+        this._occurences = Math.max(0,value);
+        this.occurenceInput.value = Math.max(0,value);
     }
 }
